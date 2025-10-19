@@ -177,13 +177,12 @@ class BinaryManager {
       // Determinar se estamos usando banco de dados externo
       const usingExternalDB = !!process.env.DB_URI;
       
-      // Inicializar sessionPath apenas se não estiver usando banco externo
+      // Inicializar sessionPath para todos os casos
       const sessionPath = path.join(SESSIONS_DIR, deviceHash);
       
-      // Apenas cria o diretório de sessão se não estiver usando banco externo
-      if (!usingExternalDB) {
-        await this.ensureSessionDirectory(sessionPath);
-      }
+      // Sempre criar o diretório de sessão, mesmo usando banco externo
+      // Isso é necessário para armazenar arquivos como QR codes
+      await this.ensureSessionDirectory(sessionPath);
 
       // Prepare environment variables
       const env = {
