@@ -18,7 +18,7 @@ services:
       - DEFAULT_ADMIN_USER=${DEFAULT_ADMIN_USER}
       - DEFAULT_ADMIN_PASS=${DEFAULT_ADMIN_PASS}
       - DOCKER_SOCKET=/var/run/docker.sock
-      - DB_URI=${DB_URI:-}
+      - DB_URI=postgres://whatsapp:whatsapp@postgres:5432/whatsapp?sslmode=disable
     networks:
       - whatsapp_network
     restart: unless-stopped

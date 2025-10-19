@@ -18,9 +18,9 @@ const DEFAULT_ADMIN_PASS = process.env.DEFAULT_ADMIN_PASS || 'admin';
 import { Request, Response, NextFunction } from 'express';
 const proxyToActiveDevice = asyncHandler(async (req: Request, res: Response, next?: NextFunction) => {
   // 1. Extract instanceId from header
-  const instanceId = req.get('x-instance-id');
+  const instanceId = req.get('deviceHash');
   if (!instanceId) {
-    throw new CustomError('Header x-instance-id é obrigatório', 400, 'MISSING_INSTANCE_ID');
+    throw new CustomError('Header deviceHash é obrigatório', 400, 'MISSING_INSTANCE_ID');
   }
 
   // 2. Resolve device (combines resolveInstance logic)

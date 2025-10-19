@@ -42,7 +42,7 @@ Atualize o webhook de um dispositivo existente:
 curl -X PUT http://localhost:3000/api/devices \
   -H "Content-Type: application/json" \
   -H "Authorization: Basic <token>" \
-  -H "x-instance-id: a1b2c3d4e5f67890" \
+  -H "deviceHash: a1b2c3d4e5f67890" \
   -d '{
     "statusWebhookUrl": "https://novosite.com/webhook/status",
     "statusWebhookSecret": "novo-secret"

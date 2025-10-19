@@ -33,7 +33,7 @@ POST /api/devices
 ```
 **Returns:** Auto-generated `deviceHash` for future operations
 
-### Device Operations (using x-instance-id header)
+### Device Operations (using deviceHash header)
 ```http
 GET    /api/devices/info              # Get device info
 POST   /api/devices/start             # Start container
@@ -42,7 +42,7 @@ GET    /api/login                     # Get QR code
 DELETE /api/devices                   # Remove device
 
 # All operations require:
-x-instance-id: a1b2c3d4e5f67890
+deviceHash: a1b2c3d4e5f67890
 ```
 
 ## Messages
@@ -50,7 +50,7 @@ x-instance-id: a1b2c3d4e5f67890
 ### Send Message
 ```http
 POST /api/send/message
-x-instance-id: a1b2c3d4e5f67890
+deviceHash: a1b2c3d4e5f67890
 {
   "phone": "+5511888888888@s.whatsapp.net",
   "message": "Hello World"

@@ -83,7 +83,7 @@ Save the `deviceHash` - this is your device identifier.
 ```bash
 curl -X GET http://localhost:3000/api/login \
   -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "x-instance-id: a1b2c3d4e5f67890"
+  -H "deviceHash: a1b2c3d4e5f67890"
 ```
 
 You'll receive a base64 QR code. Scan it with WhatsApp on your phone.
@@ -95,7 +95,7 @@ Once connected, send a test message:
 ```bash
 curl -X POST http://localhost:3000/api/send/message \
   -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "x-instance-id: a1b2c3d4e5f67890" \
+  -H "deviceHash: a1b2c3d4e5f67890" \
   -H "Content-Type: application/json" \
   -d '{
     "phone": "+5511999999999@s.whatsapp.net",

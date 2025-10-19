@@ -28,7 +28,7 @@ Auth     Queues       Official Library
 ### API Routes
 Direct access to device APIs:
 ```
-/api/{endpoint} + x-instance-id: deviceHash → Process:port/{endpoint}
+/api/{endpoint} + deviceHash: deviceHash → Process:port/{endpoint}
 ```
 
 ## Security Features

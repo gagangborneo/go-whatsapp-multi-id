@@ -16,7 +16,7 @@ Sistema escalável para gerenciar múltiplos dispositivos WhatsApp através de u
 ### 🔑 Identificação de Dispositivos
 - **Sistema**: Baseado em `deviceHash` (ex: `a1b2c3d4e5f67890`)
 - **Geração**: `crypto.randomBytes(8).toString('hex')`
-- **Headers**: `x-instance-id` para identificar dispositivo nas APIs
+- **Headers**: `deviceHash` para identificar dispositivo nas APIs
 - **Privacy**: Zero exposição de dados pessoais (phoneNumber removido)
 
 ### 📁 Estrutura de Código Principal
@@ -66,7 +66,7 @@ POST /api/devices
 
 #### Operações de Dispositivo
 ```bash
-# Todas usam header: x-instance-id: a1b2c3d4e5f67890
+# Todas usam header: deviceHash: a1b2c3d4e5f67890
 GET /api/devices/info          # Informações do dispositivo
 POST /api/devices/start        # Iniciar processo
 POST /api/devices/stop         # Parar processo
@@ -77,7 +77,7 @@ GET /api/login                # Obter QR code
 #### Envio de Mensagens
 ```bash
 POST /api/send/message
-x-instance-id: a1b2c3d4e5f67890
+deviceHash: a1b2c3d4e5f67890
 {
   "phone": "+5511999999999@s.whatsapp.net",
   "message": "Hello World"
@@ -253,7 +253,7 @@ CREATE TABLE devices (
 #### Principais Mudanças
 1. **Remoção completa de phoneNumber/name**
 2. **Introdução de deviceHash auto-gerado**
-3. **APIs usando headers x-instance-id**
+3. **APIs usando headers deviceHash**
 4. **Convenções camelCase/snake_case**
 5. **Limpeza de métodos duplicados**
 6. **Documentação atualizada**
@@ -266,7 +266,7 @@ GET /api/devices/5511999999999/qr
 
 # DEPOIS  
 POST /api/devices { "webhookUrl": "https://..." }
-GET /api/login + header x-instance-id: a1b2c3d4e5f67890
+GET /api/login + header deviceHash: a1b2c3d4e5f67890
 ```
 
 ### 📝 Tasks Executadas
@@ -274,7 +274,7 @@ GET /api/login + header x-instance-id: a1b2c3d4e5f67890
 #### 🔄 Refatoração Principal (Concluída)
 1. ✅ Auto-geração de deviceHash
 2. ✅ Remoção de phoneNumber/name da API
-3. ✅ Headers x-instance-id implementados
+3. ✅ Headers deviceHash implementados
 4. ✅ Convenções de nomenclatura padronizadas
 5. ✅ Limpeza de código duplicado
 6. ✅ QR code path corrigido para ambientes não-Docker

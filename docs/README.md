@@ -35,11 +35,11 @@ POST /api/devices
 
 # Obter QR code
 GET /api/login
-Header: x-instance-id: {deviceHash}
+Header: deviceHash: {deviceHash}
 
 # Enviar mensagem
 POST /api/send/message
-Header: x-instance-id: {deviceHash}
+Header: deviceHash: {deviceHash}
 ```
 
 ## 📁 Estrutura do Projeto
