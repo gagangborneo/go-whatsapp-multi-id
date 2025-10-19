@@ -27,8 +27,10 @@ const loginHandler = asyncHandler(async (req: Request, res: Response) => {
       try {
         // Extract QR file path from the link
         const qrFileName = responseData.results.qr_link.split('/').pop();
-        const sessionPath = path.join(SESSIONS_DIR, deviceHash);
-        const qrFilePath = path.join(sessionPath, 'statics', 'qrcode', qrFileName);
+        // Usar o caminho correto para o arquivo QR
+        const qrFilePath = responseData.results.qr_link.includes('/app/data/sessions/') 
+          ? responseData.results.qr_link.replace('/app/data/sessions/' + deviceHash + '/', '/app/') // Corrigir caminho absoluto
+          : path.join('/app', 'statics', 'qrcode', qrFileName);
         
         logger.info(`Tentando ler arquivo QR: ${qrFilePath}`);
         
