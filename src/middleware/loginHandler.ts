@@ -25,23 +25,22 @@ const loginHandler = asyncHandler(async (req: Request, res: Response) => {
       logger.info(`QR code detectado no response para ${deviceHash}`);
       
       try {
-        // Extract QR file path from the link
+        // Extract QR file name from the link
         const qrFileName = responseData.results.qr_link.split('/').pop();
-        // Usar o caminho correto para o arquivo QR
-        const qrFilePath = responseData.results.qr_link.includes('/app/data/sessions/') 
-          ? responseData.results.qr_link.replace('/app/data/sessions/' + deviceHash + '/', '/app/') // Corrigir caminho absoluto
-          : path.join('/app', 'statics', 'qrcode', qrFileName);
+        
+        // Sempre usar o caminho direto para o arquivo QR em /app/statics/qrcode/
+        const qrFilePath = path.join('/app', 'statics', 'qrcode', qrFileName);
+        
+        // Log do caminho para debug
+        logger.debug(`Caminho original: ${responseData.results.qr_link}, Caminho corrigido: ${qrFilePath}`);
         
         logger.info(`Tentando ler arquivo QR: ${qrFilePath}`);
         
         // Wait a bit for the file to be written
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Check if file exists and read it
-        const qrExists = await fs.access(qrFilePath).then(() => true).catch(() => false);
-        
-        if (qrExists) {
-          // Read the QR code file and convert to base64
+        try {
+          // Tentar ler o arquivo QR
           const qrBuffer = await fs.readFile(qrFilePath);
           const qrBase64 = qrBuffer.toString('base64');
           
@@ -51,10 +50,13 @@ const loginHandler = asyncHandler(async (req: Request, res: Response) => {
           // Remove the old qr_link field
           delete responseData.results.qr_link;
           
-          logger.info(`QR code convertido para base64 para ${deviceHash}`);
-        } else {
+          logger.info(`QR code convertido com sucesso para base64: ${qrFileName}`);
+        } catch (error) {
           logger.warn(`Arquivo QR não encontrado: ${qrFilePath}`);
-          // Keep original response if file doesn't exist
+          
+          // Manter o qr_link original para que o cliente possa tentar acessar diretamente
+          // Isso permite fallback para o comportamento anterior
+          logger.info(`Mantendo qr_link original: ${responseData.results.qr_link}`);
         }
         
       } catch (qrError) {
