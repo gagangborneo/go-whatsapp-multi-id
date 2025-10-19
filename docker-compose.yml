@@ -18,6 +18,7 @@ services:
       - DEFAULT_ADMIN_USER=${DEFAULT_ADMIN_USER}
       - DEFAULT_ADMIN_PASS=${DEFAULT_ADMIN_PASS}
       - DOCKER_SOCKET=/var/run/docker.sock
+      - DB_URI=${DB_URI:-}
     networks:
       - whatsapp_network
     restart: unless-stopped
@@ -27,6 +28,30 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    depends_on:
+      - postgres
+      
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-whatsapp}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-whatsapp}
+      - POSTGRES_DB=${POSTGRES_DB:-whatsapp}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - whatsapp_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-whatsapp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   whatsapp_network:
+
+volumes:
+  postgres_data:

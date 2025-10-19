@@ -174,9 +174,16 @@ class BinaryManager {
     logger.info(`Iniciando processo WhatsApp para ${deviceHash} na porta ${devicePort}`);
 
     try {
-      // Create session directory for this device
+      // Determinar se estamos usando banco de dados externo
+      const usingExternalDB = !!process.env.DB_URI;
+      
+      // Inicializar sessionPath apenas se não estiver usando banco externo
       const sessionPath = path.join(SESSIONS_DIR, deviceHash);
-      await this.ensureSessionDirectory(sessionPath);
+      
+      // Apenas cria o diretório de sessão se não estiver usando banco externo
+      if (!usingExternalDB) {
+        await this.ensureSessionDirectory(sessionPath);
+      }
 
       // Prepare environment variables
       const env = {
@@ -186,7 +193,7 @@ class BinaryManager {
         APP_DEBUG: 'true',
         APP_OS: 'Chrome',
         APP_ACCOUNT_VALIDATION: 'false',
-        DB_URI: `file:${sessionPath}/whatsapp.db?_foreign_keys=on`,
+        DB_URI: process.env.DB_URI || `file:${sessionPath}/whatsapp.db?_foreign_keys=on`,
         WHATSAPP_WEBHOOK: device.webhookUrl || '',
         WHATSAPP_WEBHOOK_SECRET: device.webhookSecret || '',
         ...this.getEnvironmentVariables(options)
@@ -195,7 +202,7 @@ class BinaryManager {
       // Spawn the WhatsApp binary process
       const childProcess = spawn(this.binaryPath, ['rest'], {
         env,
-        cwd: sessionPath,
+        cwd: usingExternalDB ? process.cwd() : sessionPath,
         detached: false,
         stdio: ['pipe', 'pipe', 'pipe']
       });
