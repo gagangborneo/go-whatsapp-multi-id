@@ -3,7 +3,7 @@ FROM node:24-slim
 
 # Build args to handle arch-aware download of WhatsApp binary
 ARG TARGETARCH
-ARG WHATSAPP_VERSION=7.5.0
+ARG WHATSAPP_VERSION=7.8.0
 
 # Declare ARGs again to make them available in RUN
 ARG TARGETARCH
@@ -33,7 +33,7 @@ RUN npm ci
 # Download and setup go-whatsapp-web-multidevice binary (arch-aware)
 # TARGETARCH values are typically: amd64 | arm64
 RUN set -eux; \
-    WHATSAPP_VERSION="7.5.0"; \
+    WHATSAPP_VERSION="7.8.0"; \
     if [ "$TARGETARCH" = "arm64" ]; then \
         ARCH_SUFFIX="arm64"; \
         FOLDER_NAME="linux-arm64"; \
