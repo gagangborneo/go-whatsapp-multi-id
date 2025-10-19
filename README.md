@@ -7,6 +7,10 @@
 [![Go](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+## ⚠️ Importante
+
+Este projeto funciona como uma ponte para o projeto original [go-whatsapp-web-multidevice](https://github.com/aldinokemal/go-whatsapp-web-multidevice), estendendo suas funcionalidades para suportar múltiplas instâncias. Todos os créditos da implementação base do WhatsApp Web pertencem ao projeto original.
+
 ## 📋 Overview
 
 The **WhatsApp Multi-Platform API Gateway** is a robust and scalable solution for managing multiple WhatsApp devices simultaneously through isolated processes. Each WhatsApp instance runs as a separate process with persistent sessions, ensuring complete isolation and maximum availability.
