@@ -14,6 +14,7 @@ class BinaryManager {
   websocketConnections: Map<string, any>;
   basicAuthUsername: string;
   basicAuthPassword: string;
+  isShuttingDown: boolean = false;
 
   constructor() {
     this.binaryPath = BIN_PATH;
@@ -21,6 +22,18 @@ class BinaryManager {
     this.websocketConnections = new Map(); // deviceHash -> websocket connection
     this.basicAuthUsername = process.env.DEFAULT_ADMIN_USER || 'admin';
     this.basicAuthPassword = process.env.DEFAULT_ADMIN_PASS || 'admin';
+    
+    // Registrar handlers para desligamento do sistema
+    process.on('SIGINT', this.prepareForShutdown.bind(this));
+    process.on('SIGTERM', this.prepareForShutdown.bind(this));
+  }
+  
+  /**
+   * Prepara o sistema para desligamento, evitando que sessões ativas sejam marcadas como stopped
+   */
+  prepareForShutdown() {
+    logger.info('Sistema em processo de desligamento, mantendo status das sessões ativas');
+    this.isShuttingDown = true;
   }
 
   async initialize() {
@@ -107,7 +120,21 @@ class BinaryManager {
       const sessionPath = path.join(SESSIONS_DIR, device.deviceHash);
       const sessionDbPath = path.join(sessionPath, 'whatsapp.db');
       
-      // Check if session database exists (indicates previous session)
+      // Determinar se estamos usando banco de dados externo
+      const usingExternalDB = !!process.env.DB_URI;
+      
+      // Se estiver usando banco de dados externo, devemos sempre reiniciar o processo
+      // independentemente da existência do arquivo local whatsapp.db
+      if (usingExternalDB) {
+        logger.info(`Usando banco de dados externo para ${device.deviceHash}, reiniciando automaticamente...`);
+        
+        // Restart the process
+        await this.startProcess(device.deviceHash);
+        logger.info(`Processo reiniciado automaticamente para ${device.deviceHash} (DB externo)`);
+        return;
+      }
+      
+      // Caso não esteja usando banco externo, verificar se o arquivo local existe
       const fs = require('fs').promises;
       try {
         await fs.access(sessionDbPath);
@@ -157,7 +184,26 @@ class BinaryManager {
   async startProcess(deviceHash: string, options: any = {}) {
     // Check if process already exists
     if (this.processes.has(deviceHash)) {
-      throw new Error(`Processo para ${deviceHash} já existe`);
+      // Verificar se o processo ainda está realmente em execução
+      const processInfo = this.processes.get(deviceHash);
+      const isRunning = processInfo.pid ? await this.isProcessRunning(processInfo.pid) : false;
+
+      if (isRunning) {
+        logger.warn(`Processo para ${deviceHash} já existe e está em execução (PID: ${processInfo.pid})`);
+        
+        // Retornar informações do processo existente em vez de lançar erro
+        return {
+          pid: processInfo.pid,
+          deviceHash,
+          port: processInfo.port,
+          status: 'running',
+          alreadyRunning: true
+        };
+      } else {
+        // Processo está registrado mas não está em execução, remover da lista
+        logger.info(`Processo para ${deviceHash} estava registrado mas não está em execução, removendo referência`);
+        this.processes.delete(deviceHash);
+      }
     }
 
     // Get device information
@@ -179,10 +225,9 @@ class BinaryManager {
       
       // Inicializar sessionPath para todos os casos
       const sessionPath = path.join(SESSIONS_DIR, deviceHash);
-      
-      // Sempre criar o diretório de sessão, mesmo usando banco externo
-      // Isso é necessário para armazenar arquivos como QR codes
-      await this.ensureSessionDirectory(sessionPath);
+
+      // Se não estiver usando banco externo, garantir que o diretório de sessão exista
+      if(!usingExternalDB) await this.ensureSessionDirectory(sessionPath);
 
       // Prepare environment variables
       const env = {
@@ -218,10 +263,17 @@ class BinaryManager {
       childProcess.on('close', async (code) => {
         logger.info(`Processo WhatsApp ${deviceHash} finalizado com código ${code}`);
         this.processes.delete(deviceHash);
-        await deviceManager.updateDevice(deviceHash, { 
-          processId: null,
-          status: code === 0 ? 'stopped' : 'error' 
-        });
+        
+        // Não alterar o status se o sistema estiver sendo encerrado
+        // Isso evita que sessões ativas sejam marcadas como stopped durante reinicialização
+        if (!this.isShuttingDown) {
+          await deviceManager.updateDevice(deviceHash, { 
+            processId: null,
+            status: code === 0 ? 'stopped' : 'error' 
+          });
+        } else {
+          logger.info(`Sistema em desligamento, mantendo status atual para ${deviceHash}`);
+        }
       });
 
       childProcess.on('error', async (error) => {
